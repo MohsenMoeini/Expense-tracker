@@ -132,6 +132,6 @@ public class ExpenseServiceTest {
                 .hasMessage("Expense not found with id :" + expenseId);
 
         verify(expenseRepository, times(1)).findById(expenseId);
-        verify(expenseRepository, times(1)).save(any(Expense.class));
+        verify(expenseRepository, never()).save(any(Expense.class));
     }
 }

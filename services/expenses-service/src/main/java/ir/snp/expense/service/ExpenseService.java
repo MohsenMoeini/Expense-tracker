@@ -24,4 +24,16 @@ public class ExpenseService {
     public List<Expense> getExpensesByUsername(String username) {
         return expenseRepository.findByUsername(username).orElse(Collections.emptyList());
     }
+
+    public Expense updateExpense(Long expenseId, Expense updatedExpenseDetails) {
+        return expenseRepository.findById(expenseId)
+                .map(existingExpense -> {
+                    existingExpense.setDescription(updatedExpenseDetails.getDescription());
+                    existingExpense.setAmount(updatedExpenseDetails.getAmount());
+                    existingExpense.setDate(updatedExpenseDetails.getDate());
+                    existingExpense.setUsername(updatedExpenseDetails.getUsername());
+                    existingExpense.setCategory(updatedExpenseDetails.getCategory());
+                    return expenseRepository.save(existingExpense);
+                }).orElseThrow(() -> new RuntimeException("Expense not found with id :" + expenseId));
+    }
 }
