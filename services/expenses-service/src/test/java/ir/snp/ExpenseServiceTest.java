@@ -11,9 +11,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -52,5 +53,29 @@ public class ExpenseServiceTest {
         assertThat(result.getCategory()).isEqualTo("Food");
         assertThat(result.getUsername()).isEqualTo("user1");
 
+    }
+
+
+
+    @Test
+    void  shouldReturnExpensesForGivenUsername(){
+        //given
+        String username = "user123";
+        List<Expense> mockExpenses = List.of(
+                new Expense(1L, "Lunch", new BigDecimal("10.50"), LocalDate.now(),
+                        "Food", username, 0L),
+                new Expense(2L, "Groceries", new BigDecimal("25.30"), LocalDate.now(),
+                        "Shopping", username, 0L)
+        );
+
+        //when
+        List<Expense> expenses = expenseService.getExpensesByUsername(username);
+
+        //then
+        assertThat(expenses).hasSize(2);
+        assertThat(expenses.get(0).getDescription()).isEqualTo("Lunch");
+        assertThat(expenses.get(1).getDescription()).isEqualTo("Groceries");
+
+        verify(expenseRepository, times(1)).findByUserName(username);
     }
 }
