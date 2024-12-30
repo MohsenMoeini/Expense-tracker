@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 
@@ -94,4 +95,43 @@ public class ExpenseServiceTest {
 
     }
 
+    @Test
+    void shouldUpdateExistingExpense(){
+        //given
+        Long expenseId = 1L;
+        Expense existingExpense = new Expense(expenseId, "Lunch", new BigDecimal("10.50"), LocalDate.now(), "Food", "user1", 0L);
+        Expense updatedExpenseDetails = new Expense(null, "Dinner", new BigDecimal("15.00"), LocalDate.now(), "Dining", "user1", null);
+
+        Expense updatedExpense = new Expense(expenseId, "Dinner", new BigDecimal("15.00"), LocalDate.now(),"Dining", "user1", 1L);
+
+        when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(existingExpense));
+        when(expenseRepository.save(any(Expense.class))).thenReturn(updatedExpense);
+
+        //when
+        Expense result = expenseService.updateExpense(expenseId, updatedExpenseDetails);
+
+        //then
+        assertThat(result.getId()).isEqualTo(expenseId);
+        assertThat(result.getDescription()).isEqualTo("Dinner");
+        assertThat(result.getAmount()).isEqualByComparingTo("15.00");
+        assertThat(result.getCategory()).isEqualTo("Dining");
+
+        verify(expenseRepository, times(1)).findById(expenseId);
+        verify(expenseRepository, times(1)).save(any(Expense.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenExpenseNotFound(){
+        //given
+        Long expenseId = 99L;
+        Expense updatedExpenseDetails = new Expense(null, "Dinner", new BigDecimal("15.00"), LocalDate.now(), "Dining", "user1", null);
+        when(expenseRepository.findById(expenseId)).thenReturn(Optional.empty());
+        //when then
+        assertThatThrownBy(()-> expenseService.updateExpense(expenseId, updatedExpenseDetails))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Expense not found with id :" + expenseId);
+
+        verify(expenseRepository, times(1)).findById(expenseId);
+        verify(expenseRepository, times(1)).save(any(Expense.class));
+    }
 }
