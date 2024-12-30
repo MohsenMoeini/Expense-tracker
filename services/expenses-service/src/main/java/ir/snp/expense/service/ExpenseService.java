@@ -37,4 +37,12 @@ public class ExpenseService {
                     return expenseRepository.save(existingExpense);
                 }).orElseThrow(() -> new ExpenseNotFoundException(expenseId));
     }
+
+    public void deleteExpense(Long expenseId) {
+        if (!expenseRepository.existsById(expenseId)){
+            throw new ExpenseNotFoundException(expenseId);
+        }
+        expenseRepository.deleteById(expenseId);
+
+    }
 }
