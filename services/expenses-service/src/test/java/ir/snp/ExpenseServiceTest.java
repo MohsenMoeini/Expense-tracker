@@ -4,7 +4,6 @@ import ir.snp.expense.entity.Expense;
 import ir.snp.expense.repository.ExpenseRepository;
 import ir.snp.expense.service.ExpenseService;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -12,16 +11,17 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 
 
 @SpringBootTest
 public class ExpenseServiceTest {
     @MockitoBean
+    @SuppressWarnings("unused")
     private ExpenseRepository expenseRepository;
     @Autowired
     ExpenseService expenseService;
@@ -41,7 +41,7 @@ public class ExpenseServiceTest {
                 new BigDecimal("5.00"), LocalDate.now(),
                 "Food", "user1", 0L);
 
-        Mockito.when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+        when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
         //when
         Expense result = expenseService.createExpense(expense);
@@ -58,7 +58,7 @@ public class ExpenseServiceTest {
 
 
     @Test
-    void  shouldReturnExpensesForGivenUsername(){
+    void shouldReturnExpensesForGivenUsername(){
         //given
         String username = "user123";
         List<Expense> mockExpenses = List.of(
@@ -68,6 +68,8 @@ public class ExpenseServiceTest {
                         "Shopping", username, 0L)
         );
 
+        when(expenseRepository.findByUsername(username)).thenReturn(Optional.of(mockExpenses));
+
         //when
         List<Expense> expenses = expenseService.getExpensesByUsername(username);
 
@@ -76,6 +78,20 @@ public class ExpenseServiceTest {
         assertThat(expenses.get(0).getDescription()).isEqualTo("Lunch");
         assertThat(expenses.get(1).getDescription()).isEqualTo("Groceries");
 
-        verify(expenseRepository, times(1)).findByUserName(username);
+        verify(expenseRepository, times(1)).findByUsername(username);
     }
+
+    @Test
+    void shouldReturnEmptyWhenNoExpensesFoundForUsername(){
+        String username = "test_user";
+        when(expenseRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        List<Expense> expenses = expenseService.getExpensesByUsername(username);
+
+        assertThat(expenses).isEmpty();
+
+        verify(expenseRepository, times(1)).findByUsername(username);
+
+    }
+
 }
