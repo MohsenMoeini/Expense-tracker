@@ -1,6 +1,7 @@
 package ir.snp;
 
 import ir.snp.expense.entity.Expense;
+import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.repository.ExpenseRepository;
 import ir.snp.expense.service.ExpenseService;
 import org.junit.jupiter.api.Test;
@@ -128,8 +129,8 @@ public class ExpenseServiceTest {
         when(expenseRepository.findById(expenseId)).thenReturn(Optional.empty());
         //when then
         assertThatThrownBy(()-> expenseService.updateExpense(expenseId, updatedExpenseDetails))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Expense not found with id :" + expenseId);
+                .isInstanceOf(ExpenseNotFoundException.class)
+                .hasMessage("Expense not found with id: " + expenseId);
 
         verify(expenseRepository, times(1)).findById(expenseId);
         verify(expenseRepository, never()).save(any(Expense.class));

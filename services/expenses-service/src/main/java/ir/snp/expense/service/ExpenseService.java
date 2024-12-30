@@ -1,6 +1,7 @@
 package ir.snp.expense.service;
 
 import ir.snp.expense.entity.Expense;
+import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.repository.ExpenseRepository;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,6 @@ public class ExpenseService {
                     existingExpense.setUsername(updatedExpenseDetails.getUsername());
                     existingExpense.setCategory(updatedExpenseDetails.getCategory());
                     return expenseRepository.save(existingExpense);
-                }).orElseThrow(() -> new RuntimeException("Expense not found with id :" + expenseId));
+                }).orElseThrow(() -> new ExpenseNotFoundException(expenseId));
     }
 }
