@@ -135,4 +135,38 @@ public class ExpenseServiceTest {
         verify(expenseRepository, times(1)).findById(expenseId);
         verify(expenseRepository, never()).save(any(Expense.class));
     }
+
+    @Test
+    void shouldDeleteExistingExpense(){
+        //given
+        Long expenseId = 1L;
+        when(expenseRepository.existsById(expenseId)).thenReturn(true);
+
+        //when
+        expenseService.deleteExpense(expenseId);
+
+        //then
+
+        verify(expenseRepository, times(1)).existsById(expenseId);
+        verify(expenseRepository, times(1)).deleteById(expenseId);
+
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistingExpense(){
+        //given
+        Long expenseId = 99L;
+
+        when(expenseRepository.existsById(expenseId)).thenReturn(false);
+
+        //when / then
+        assertThatThrownBy(() -> expenseService.deleteExpense(expenseId))
+                .isInstanceOf(ExpenseNotFoundException.class)
+                .hasMessage("Expense not found with id: " + expenseId);
+
+        verify(expenseRepository, times(1)).existsById(expenseId);
+        verify(expenseRepository, never()).deleteById(expenseId);
+
+
+    }
 }
