@@ -1,9 +1,8 @@
-package ir.snp;
+package ir.snp.expense.service;
 
 import ir.snp.expense.entity.Expense;
 import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.repository.ExpenseRepository;
-import ir.snp.expense.service.ExpenseService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
