@@ -1,5 +1,8 @@
 package ir.snp;
 
+import ir.snp.expense.entity.Expense;
+import ir.snp.expense.repository.ExpenseRepository;
+import ir.snp.expense.service.ExpenseService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ExpenseServiceTest {
     @MockitoBean
     private ExpenseRepository expenseRepository;
-    @Autowired ExpenseService expenseService;
+    @Autowired
+    ExpenseService expenseService;
 
     @Test
     public void testCreateExpense_success(){
@@ -28,23 +32,25 @@ public class ExpenseServiceTest {
         expense.setDescription("Coffee");
         expense.setAmount(new BigDecimal("5.00"));
         expense.setDate(LocalDate.now());
-        expense.secCategory("Food");
+        expense.setCategory("Food");
         expense.setUsername("user1");
 
 
-        Expense savedExpense = new Expence(1L,"Coffee",new BigDecimal("5.00"), LocalDate.now(), "user1", 0L);
+        Expense savedExpense = new Expense(1L,"Coffee",
+                new BigDecimal("5.00"), LocalDate.now(),
+                "Food", "user1", 0L);
 
         Mockito.when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
         //when
-        Expense result = expense.createExpense(expense);
+        Expense result = expenseService.createExpense(expense);
 
         //then
-        assertThat(result.getId()).isNotNull;
+        assertThat(result.getId()).isNotNull();
         assertThat(result.getDescription()).isEqualTo("Coffee");
         assertThat(result.getAmount()).isEqualByComparingTo("5.00");
         assertThat(result.getCategory()).isEqualTo("Food");
-        assertThat(result.getUsername()).isEaualTo("user1");
+        assertThat(result.getUsername()).isEqualTo("user1");
 
     }
 }
