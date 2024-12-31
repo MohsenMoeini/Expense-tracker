@@ -5,3 +5,16 @@ server:
 spring:
   application:
     name: expenses-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/realms/master/protocol/openid-connect/certs
+
+  cloud:
+    gateway:
+      routes:
+        - id: expense
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/expense/**

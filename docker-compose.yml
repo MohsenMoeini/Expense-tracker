@@ -10,3 +10,26 @@ services:
       POSTGRES_DB: expenses_db
     ports:
       - "5432:5432"
+
+
+  keycloak:
+    image: keycloak/keycloak:25.0.0
+    command: start
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    environment:
+      KC_DB: postgres
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres:5432
+      KC_DB_URL: jdbc:postgresql://postgres:5432/expenses_db
+      DB_DATABASE: expenses_db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+
+
+
