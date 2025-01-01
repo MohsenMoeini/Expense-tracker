@@ -16,10 +16,12 @@ public interface ExpenseMapper {
     @Mapping(target = "category.id", ignore = true)
     Expense toEntity(ExpenseRequestDTO dto);
     @Mapping(source = "money.currency", target = "money.currencyCode", qualifiedByName = "currencyToString")
+    @Mapping(source = "category.id", target = "categoryId")
     ExpenseRequestDTO toDTO(Expense expense);
 
     @Mapping(source = "money.currency", target = "money.currencyCode", qualifiedByName = "currencyToString")
     @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "user.username", target = "username")
     ExpenseResponseDTO toResponseDTO(Expense expense);
 
     @Named("stringToCurrency")
