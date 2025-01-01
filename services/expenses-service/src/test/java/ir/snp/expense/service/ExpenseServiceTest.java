@@ -1,10 +1,13 @@
 package ir.snp.expense.service;
 
+import ir.snp.expense.dto.ExpenseRequestDTO;
+import ir.snp.expense.dto.ExpenseResponseDTO;
 import ir.snp.expense.entity.Category;
 import ir.snp.expense.entity.Expense;
 import ir.snp.expense.entity.Money;
 import ir.snp.expense.entity.User;
 import ir.snp.expense.exception.ExpenseNotFoundException;
+import ir.snp.expense.mappers.ExpenseMapper;
 import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,9 @@ public class ExpenseServiceTest {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private ExpenseMapper expenseMapper;
+
+    @Autowired
     ExpenseService expenseService;
 
     @Test
@@ -42,8 +48,8 @@ public class ExpenseServiceTest {
         //Given
         Expense expense = new Expense();
 
-        Category category = new Category();
-        category.setName("Food");
+        Category foodCategory = new Category();
+        foodCategory.setName("Food");
 
         Money money = new Money(new BigDecimal("5.00"),Currency.getInstance("IRR"));
 
@@ -52,26 +58,28 @@ public class ExpenseServiceTest {
         expense.setDescription("Coffee");
         expense.setMoney(money);
         expense.setDate(LocalDate.now());
-        expense.setCategory(category);
+        expense.setCategory(foodCategory);
         expense.setUser(user);
-
+        ExpenseRequestDTO expenseRequestDTO = expenseMapper.toDTO(expense);
 
         Expense savedExpense = new Expense(1L,"Coffee",
-                money,category, user, LocalDate.now(),
+                money,foodCategory, user, LocalDate.now(),
                  0L);
 
         when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+        when(categoryRepository.findById(any())).thenReturn(Optional.of(foodCategory));
+
 
         //when
-        Expense result = expenseService.createExpense(expense);
+        ExpenseResponseDTO result = expenseService.createExpense(expenseRequestDTO, user.getUsername());
 
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result.getDescription()).isEqualTo("Coffee");
         assertThat(result.getMoney().getAmount()).isEqualByComparingTo("5.00");
-        assertThat(result.getMoney().getCurrency()).isEqualTo(Currency.getInstance("IRR"));
-        assertThat(result.getCategory().getName()).isEqualTo("Food");
-        assertThat(result.getUser().getUsername()).isEqualTo("user1");
+        assertThat(Currency.getInstance(result.getMoney().getCurrencyCode())).isEqualTo(Currency.getInstance("IRR"));
+        assertThat(result.getCategoryName()).isEqualTo("Food");
+        assertThat(result.getUsername()).isEqualTo("user1");
 
     }
 
