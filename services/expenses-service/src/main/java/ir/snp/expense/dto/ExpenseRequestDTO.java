@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExpenseDTO {
+public class ExpenseRequestDTO {
     @NotBlank(message = "Description is mandatory")
     private String description;
     @Valid
