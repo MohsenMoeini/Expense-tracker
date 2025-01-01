@@ -1,7 +1,11 @@
 package ir.snp.expense.service;
 
+import ir.snp.expense.entity.Category;
 import ir.snp.expense.entity.Expense;
+import ir.snp.expense.entity.Money;
+import ir.snp.expense.entity.User;
 import ir.snp.expense.exception.ExpenseNotFoundException;
+import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +29,11 @@ public class ExpenseServiceTest {
     @MockitoBean
     @SuppressWarnings("unused")
     private ExpenseRepository expenseRepository;
+
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private CategoryRepository categoryRepository;
+
     @Autowired
     ExpenseService expenseService;
 
@@ -31,16 +41,24 @@ public class ExpenseServiceTest {
     public void testCreateExpense_success(){
         //Given
         Expense expense = new Expense();
+
+        Category category = new Category();
+        category.setName("Food");
+
+        Money money = new Money(new BigDecimal("5.00"),Currency.getInstance("IRR"));
+
+        User user = new User("user1");
+
         expense.setDescription("Coffee");
-        expense.setAmount(new BigDecimal("5.00"));
+        expense.setMoney(money);
         expense.setDate(LocalDate.now());
-        expense.setCategory("Food");
-        expense.setUsername("user1");
+        expense.setCategory(category);
+        expense.setUser(user);
 
 
         Expense savedExpense = new Expense(1L,"Coffee",
-                new BigDecimal("5.00"), LocalDate.now(),
-                "Food", "user1", 0L);
+                money,category, user, LocalDate.now(),
+                 0L);
 
         when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
@@ -50,9 +68,10 @@ public class ExpenseServiceTest {
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result.getDescription()).isEqualTo("Coffee");
-        assertThat(result.getAmount()).isEqualByComparingTo("5.00");
-        assertThat(result.getCategory()).isEqualTo("Food");
-        assertThat(result.getUsername()).isEqualTo("user1");
+        assertThat(result.getMoney().getAmount()).isEqualByComparingTo("5.00");
+        assertThat(result.getMoney().getCurrency()).isEqualTo(Currency.getInstance("IRR"));
+        assertThat(result.getCategory().getName()).isEqualTo("Food");
+        assertThat(result.getUser().getUsername()).isEqualTo("user1");
 
     }
 
@@ -62,14 +81,19 @@ public class ExpenseServiceTest {
     void shouldReturnExpensesForGivenUsername(){
         //given
         String username = "user123";
+        Category foodCategory = new Category(1L, "Food", null);
+        Category shoppingCategory = new Category(2L, "Shopping", null);
+
         List<Expense> mockExpenses = List.of(
-                new Expense(1L, "Lunch", new BigDecimal("10.50"), LocalDate.now(),
-                        "Food", username, 0L),
-                new Expense(2L, "Groceries", new BigDecimal("25.30"), LocalDate.now(),
-                        "Shopping", username, 0L)
+                new Expense(1L, "Lunch", new Money(new BigDecimal("10.50"), Currency.getInstance("IRR"))
+                                        , foodCategory, new User(username)
+                                        , LocalDate.now(), 0L),
+                new Expense(2L, "Groceries", new Money(new BigDecimal("25.30"), Currency.getInstance("IRR")),
+                        shoppingCategory, new User(username)
+                        ,LocalDate.now(), 0L)
         );
 
-        when(expenseRepository.findByUsername(username)).thenReturn(Optional.of(mockExpenses));
+        when(expenseRepository.findByUser_Username(username)).thenReturn(Optional.of(mockExpenses));
 
         //when
         List<Expense> expenses = expenseService.getExpensesByUsername(username);
@@ -77,21 +101,28 @@ public class ExpenseServiceTest {
         //then
         assertThat(expenses).hasSize(2);
         assertThat(expenses.get(0).getDescription()).isEqualTo("Lunch");
-        assertThat(expenses.get(1).getDescription()).isEqualTo("Groceries");
+        assertThat(expenses.get(0).getMoney().getAmount()).isEqualByComparingTo("10.50");
+        assertThat(expenses.get(0).getCategory().getName()).isEqualTo("Food");
+        assertThat(expenses.get(0).getUser().getUsername()).isEqualTo(username);
 
-        verify(expenseRepository, times(1)).findByUsername(username);
+        assertThat(expenses.get(1).getDescription()).isEqualTo("Groceries");
+        assertThat(expenses.get(1).getMoney().getAmount()).isEqualByComparingTo("25.30");
+        assertThat(expenses.get(1).getCategory().getName()).isEqualTo("Shopping");
+        assertThat(expenses.get(1).getUser().getUsername()).isEqualTo(username);
+
+        verify(expenseRepository, times(1)).findByUser_Username(username);
     }
 
     @Test
     void shouldReturnEmptyWhenNoExpensesFoundForUsername(){
         String username = "test_user";
-        when(expenseRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(expenseRepository.findByUser_Username(username)).thenReturn(Optional.empty());
 
         List<Expense> expenses = expenseService.getExpensesByUsername(username);
 
         assertThat(expenses).isEmpty();
 
-        verify(expenseRepository, times(1)).findByUsername(username);
+        verify(expenseRepository, times(1)).findByUser_Username(username);
 
     }
 
@@ -99,10 +130,20 @@ public class ExpenseServiceTest {
     void shouldUpdateExistingExpense(){
         //given
         Long expenseId = 1L;
-        Expense existingExpense = new Expense(expenseId, "Lunch", new BigDecimal("10.50"), LocalDate.now(), "Food", "user1", 0L);
-        Expense updatedExpenseDetails = new Expense(null, "Dinner", new BigDecimal("15.00"), LocalDate.now(), "Dining", "user1", null);
 
-        Expense updatedExpense = new Expense(expenseId, "Dinner", new BigDecimal("15.00"), LocalDate.now(),"Dining", "user1", 1L);
+        User user = new User("user1");
+
+        Category existingCategory = new Category(1L,"Food", null);
+        Category updatedCategory = new Category(2L,"Dining", null);
+
+        Money existingMoney = new Money(new BigDecimal("10.50"), Currency.getInstance("IRR"));
+        Money updatedgMoney = new Money(new BigDecimal("15.00"), Currency.getInstance("USD"));
+
+        Expense existingExpense = new Expense(expenseId, "Lunch",
+                        existingMoney, existingCategory, user, LocalDate.now(), 0L);
+        Expense updatedExpenseDetails = new Expense(null, "Dinner", updatedgMoney, existingCategory, user, LocalDate.now(), null);
+
+        Expense updatedExpense = new Expense(expenseId, "Dinner", updatedgMoney, updatedCategory, user, LocalDate.now(), 1L);
 
         when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(existingExpense));
         when(expenseRepository.save(any(Expense.class))).thenReturn(updatedExpense);
@@ -113,8 +154,10 @@ public class ExpenseServiceTest {
         //then
         assertThat(result.getId()).isEqualTo(expenseId);
         assertThat(result.getDescription()).isEqualTo("Dinner");
-        assertThat(result.getAmount()).isEqualByComparingTo("15.00");
-        assertThat(result.getCategory()).isEqualTo("Dining");
+        assertThat(result.getMoney().getAmount()).isEqualByComparingTo("15.00");
+        assertThat(result.getMoney().getCurrency()).isEqualTo(Currency.getInstance("USD"));
+        assertThat(result.getCategory().getName()).isEqualTo("Dining");
+        assertThat(result.getVersion()).isEqualTo(1L);
 
         verify(expenseRepository, times(1)).findById(expenseId);
         verify(expenseRepository, times(1)).save(any(Expense.class));
@@ -124,7 +167,12 @@ public class ExpenseServiceTest {
     void shouldThrowExceptionWhenExpenseNotFound(){
         //given
         Long expenseId = 99L;
-        Expense updatedExpenseDetails = new Expense(null, "Dinner", new BigDecimal("15.00"), LocalDate.now(), "Dining", "user1", null);
+        Category category = new Category(2L, "Dining", null);
+        Money money = new Money(new BigDecimal("15.00"),Currency.getInstance("IRR"));
+        User user = new User("user1");
+
+        Expense updatedExpenseDetails = new Expense(null, "Dinner", money, category, user, LocalDate.now(), null);
+
         when(expenseRepository.findById(expenseId)).thenReturn(Optional.empty());
         //when then
         assertThatThrownBy(()-> expenseService.updateExpense(expenseId, updatedExpenseDetails))
