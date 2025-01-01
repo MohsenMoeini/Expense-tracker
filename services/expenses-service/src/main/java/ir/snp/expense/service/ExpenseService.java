@@ -23,16 +23,16 @@ public class ExpenseService {
 
 
     public List<Expense> getExpensesByUsername(String username) {
-        return expenseRepository.findByUsername(username).orElse(Collections.emptyList());
+        return expenseRepository.findByUser_Username(username).orElse(Collections.emptyList());
     }
 
     public Expense updateExpense(Long expenseId, Expense updatedExpenseDetails) {
         return expenseRepository.findById(expenseId)
                 .map(existingExpense -> {
                     existingExpense.setDescription(updatedExpenseDetails.getDescription());
-                    existingExpense.setAmount(updatedExpenseDetails.getAmount());
+                    existingExpense.setMoney(updatedExpenseDetails.getMoney());
                     existingExpense.setDate(updatedExpenseDetails.getDate());
-                    existingExpense.setUsername(updatedExpenseDetails.getUsername());
+                    existingExpense.setUser(updatedExpenseDetails.getUser());
                     existingExpense.setCategory(updatedExpenseDetails.getCategory());
                     return expenseRepository.save(existingExpense);
                 }).orElseThrow(() -> new ExpenseNotFoundException(expenseId));

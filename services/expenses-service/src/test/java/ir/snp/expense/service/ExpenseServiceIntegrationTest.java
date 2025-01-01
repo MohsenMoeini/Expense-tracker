@@ -1,7 +1,11 @@
 package ir.snp.expense.service;
 
+import ir.snp.expense.entity.Category;
 import ir.snp.expense.entity.Expense;
+import ir.snp.expense.entity.Money;
+import ir.snp.expense.entity.User;
 import ir.snp.expense.exception.ExpenseNotFoundException;
+import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,15 +31,27 @@ public class ExpenseServiceIntegrationTest {
     @Autowired
     private ExpenseRepository expenseRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+
     @Test
     @DisplayName("should create an expense and persist it to the database")
     public void testCreateExpense(){
         //given
+        Category entertainmentCategory = new Category();
+        entertainmentCategory.setName("Entertainment");
+
+        Money money = new Money(new BigDecimal("25.00"), Currency.getInstance("IRR"));
+
+        User user = new User("user1");
+
         Expense expense = new Expense();
+
         expense.setDescription("Movie Tickets");
-        expense.setAmount(new BigDecimal("25.00"));
-        expense.setCategory("Entertainment");
-        expense.setUsername("user1");
+        expense.setMoney(money);
+        expense.setCategory(entertainmentCategory);
+        expense.setUser(user);
         expense.setDate(LocalDate.now());
 
         //when
@@ -42,10 +59,10 @@ public class ExpenseServiceIntegrationTest {
 
         //then
         assertThat(createdExpense.getId()).isNotNull();
-        assertThat(createdExpense.getCategory()).isEqualTo("Entertainment");
+        assertThat(createdExpense.getCategory().getName()).isEqualTo("Entertainment");
         assertThat(createdExpense.getDescription()).isEqualTo("Movie Tickets");
-        assertThat(createdExpense.getAmount()).isEqualByComparingTo("25.00");
-        assertThat(createdExpense.getUsername()).isEqualTo("user1");
+        assertThat(createdExpense.getMoney().getAmount()).isEqualByComparingTo("25.00");
+        assertThat(createdExpense.getUser().getUsername()).isEqualTo("user1");
 
         //verify persistence
         Expense foundExpense = expenseRepository.findById(createdExpense.getId()).orElse(null);
@@ -59,8 +76,15 @@ public class ExpenseServiceIntegrationTest {
     void testGetExpenseByUser(){
         //given
         String userId = "user1";
-        Expense expense1 = new Expense(null, "Lunch", new BigDecimal("30.00"), LocalDate.now(),"Food" ,userId, null);
-        Expense expense2 = new Expense(null, "Taxi", new BigDecimal("10.00"),LocalDate.now(), "Transport", userId, null);
+
+        Category foodCategory = new Category();
+        foodCategory.setName("Food");
+
+        Category transportCategory = new Category();
+        transportCategory.setName("Transport");
+
+        Expense expense1 = new Expense(null, "Lunch", new Money(new BigDecimal("30.00"),Currency.getInstance("IRR")),foodCategory ,new User(userId) ,LocalDate.now(), null);
+        Expense expense2 = new Expense(null, "Taxi", new Money(new BigDecimal("10.00"), Currency.getInstance("IRR")), transportCategory, new User(userId), LocalDate.now(), null);
         expenseRepository.saveAll(List.of(expense1, expense2));
 
         //when
@@ -68,7 +92,7 @@ public class ExpenseServiceIntegrationTest {
 
         //then
         assertThat(expenses).hasSize(2)
-                .extracting(Expense::getCategory)
+                .extracting(expense -> expense.getCategory().getName())
                 .containsExactlyInAnyOrder("Food", "Transport");
     }
 
@@ -77,22 +101,35 @@ public class ExpenseServiceIntegrationTest {
     void testUpdateExpense(){
         //given
         String userId = "user1";
-        Expense expense = new Expense(null, "Dinner", new BigDecimal("20.00"), LocalDate.now(), "Food", userId, null);
+
+        Category existingCategory = new Category(null,"Food", null);
+        categoryRepository.save(existingCategory);
+
+        Category updatedCategory = new Category(null,"Dining", null);
+        categoryRepository.save(updatedCategory);
+
+
+        Money existingMoney = new Money(new BigDecimal("20.00"), Currency.getInstance("IRR"));
+        Money updatedgMoney = new Money(new BigDecimal("45.00"), Currency.getInstance("USD"));
+
+        User user = new User(userId);
+
+        Expense expense = new Expense(null, "Dinner", existingMoney, existingCategory, user, LocalDate.now(), null);
         Expense savedExpense = expenseRepository.save(expense);
-        Expense updatedExpense = new Expense(null, "Dinner at restaurant", new BigDecimal("45.00"), LocalDate.now(), "Food", userId,null);
+        Expense updatedExpense = new Expense(null, "Dinner at restaurant", updatedgMoney, updatedCategory, new User(userId), LocalDate.now(), null);
 
         //when
         Expense result = expenseService.updateExpense(savedExpense.getId(), updatedExpense);
 
         //then
         assertThat(result.getDescription()).isEqualTo("Dinner at restaurant");
-        assertThat(result.getAmount()).isEqualByComparingTo("45.00");
+        assertThat(result.getMoney().getAmount()).isEqualByComparingTo("45.00");
 
         //verify persistence
         Expense foundExpense = expenseRepository.findById(savedExpense.getId()).orElse(null);
         assertThat(foundExpense).isNotNull();
         assertThat(foundExpense.getDescription()).isEqualTo("Dinner at restaurant");
-        assertThat(foundExpense.getAmount()).isEqualByComparingTo("45.00");
+        assertThat(foundExpense.getMoney().getAmount()).isEqualByComparingTo("45.00");
     }
 
     @Test
@@ -100,7 +137,12 @@ public class ExpenseServiceIntegrationTest {
     void testDeleteExpense(){
         //given
         String userId = "user1";
-        Expense expense =  new Expense(null, "Coffee", new BigDecimal("5.00"), LocalDate.now(), "Food", userId, null);
+        User user1 = new User(userId);
+        Money money = new Money(new BigDecimal("5.00"), Currency.getInstance("IRR"));
+        Category foodCategory = new Category();
+        foodCategory.setName("Food");
+
+        Expense expense =  new Expense(null, "Coffee", money, foodCategory, user1, LocalDate.now(), null);
         Expense savedExpense = expenseRepository.save(expense);
 
         //when
@@ -115,7 +157,12 @@ public class ExpenseServiceIntegrationTest {
     void testUpdateExpenseNotFoundException(){
         //given
         Long nonExistentId = 99L;
-        Expense updatedExpense = new Expense(null, "NonExistent", new BigDecimal("6.00"), LocalDate.now(), "Transport", "user78", null);
+        String userId = "user1";
+        User user1 = new User(userId);
+        Money money = new Money(new BigDecimal("6.00"), Currency.getInstance("IRR"));
+        Category transportCategory = new Category();
+        transportCategory.setName("Transport");
+        Expense updatedExpense = new Expense(null, "NonExistent", money, transportCategory, user1, LocalDate.now(), null);
 
         //when and then
         assertThatThrownBy(() -> expenseService.updateExpense(nonExistentId, updatedExpense))
