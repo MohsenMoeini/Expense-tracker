@@ -8,6 +8,7 @@ import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +35,38 @@ public class ExpenseServiceIntegrationTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    private Category entertainmentCategory;
+    private Category foodCategory ;
+    private Category transportCategory;
+    private Category existingCategory;
+    private Category updatedCategory;
+
+    @BeforeEach
+    void setup(){
+        entertainmentCategory = new Category();
+        foodCategory = new Category();
+        transportCategory = new Category();
+        existingCategory = new Category();
+        updatedCategory = new Category();
+
+        entertainmentCategory.setName("Entertainment");
+        foodCategory.setName("Food");
+        transportCategory.setName("Transport");
+        existingCategory.setName("Dining");
+        updatedCategory.setName("Restaurant");
+
+        entertainmentCategory = categoryRepository.save(entertainmentCategory);
+        foodCategory = categoryRepository.save(foodCategory);
+        transportCategory = categoryRepository.save(transportCategory);
+        existingCategory = categoryRepository.save(existingCategory);
+        updatedCategory = categoryRepository.save(updatedCategory);
+    }
 
     @Test
     @DisplayName("should create an expense and persist it to the database")
     public void testCreateExpense(){
         //given
-        Category entertainmentCategory = new Category();
-        entertainmentCategory.setName("Entertainment");
+
 
         Money money = new Money(new BigDecimal("25.00"), Currency.getInstance("IRR"));
 
@@ -77,11 +103,9 @@ public class ExpenseServiceIntegrationTest {
         //given
         String userId = "user1";
 
-        Category foodCategory = new Category();
-        foodCategory.setName("Food");
 
-        Category transportCategory = new Category();
-        transportCategory.setName("Transport");
+
+
 
         Expense expense1 = new Expense(null, "Lunch", new Money(new BigDecimal("30.00"),Currency.getInstance("IRR")),foodCategory ,new User(userId) ,LocalDate.now(), null);
         Expense expense2 = new Expense(null, "Taxi", new Money(new BigDecimal("10.00"), Currency.getInstance("IRR")), transportCategory, new User(userId), LocalDate.now(), null);
@@ -102,11 +126,6 @@ public class ExpenseServiceIntegrationTest {
         //given
         String userId = "user1";
 
-        Category existingCategory = new Category(null,"Food", null);
-        categoryRepository.save(existingCategory);
-
-        Category updatedCategory = new Category(null,"Dining", null);
-        categoryRepository.save(updatedCategory);
 
 
         Money existingMoney = new Money(new BigDecimal("20.00"), Currency.getInstance("IRR"));
@@ -139,8 +158,7 @@ public class ExpenseServiceIntegrationTest {
         String userId = "user1";
         User user1 = new User(userId);
         Money money = new Money(new BigDecimal("5.00"), Currency.getInstance("IRR"));
-        Category foodCategory = new Category();
-        foodCategory.setName("Food");
+
 
         Expense expense =  new Expense(null, "Coffee", money, foodCategory, user1, LocalDate.now(), null);
         Expense savedExpense = expenseRepository.save(expense);
@@ -160,8 +178,7 @@ public class ExpenseServiceIntegrationTest {
         String userId = "user1";
         User user1 = new User(userId);
         Money money = new Money(new BigDecimal("6.00"), Currency.getInstance("IRR"));
-        Category transportCategory = new Category();
-        transportCategory.setName("Transport");
+
         Expense updatedExpense = new Expense(null, "NonExistent", money, transportCategory, user1, LocalDate.now(), null);
 
         //when and then

@@ -4,6 +4,7 @@ import ir.snp.expense.entity.Category;
 import ir.snp.expense.entity.Expense;
 import ir.snp.expense.entity.Money;
 import ir.snp.expense.entity.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +22,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExpenseRepositoryIntegrationTest {
     @Autowired
     private ExpenseRepository expenseRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
+    Category foodCategory;
+    Category healthyCategory;
+    Category utilitiesCategory;
+
+    @BeforeEach
+    void setup(){
+        foodCategory = new Category();
+        healthyCategory = new Category();
+        utilitiesCategory = new Category();
+
+
+        foodCategory.setName("Food");
+        healthyCategory.setName("Health");
+        utilitiesCategory.setName("Utilities");
+
+        foodCategory = categoryRepository.save(foodCategory);
+        healthyCategory = categoryRepository.save(healthyCategory);
+        utilitiesCategory = categoryRepository.save(utilitiesCategory);
+    }
     @Test
     @DisplayName("Should save and retrieve an expense successfully")
     public void testSaveAndFindExpense(){
         //given
-        Category foodCategory = new Category();
+
         foodCategory.setName("Food");
         Money money = new Money(new BigDecimal("50.00"), Currency.getInstance("IRR"));
         User user = new User("user1");
@@ -59,10 +81,8 @@ class ExpenseRepositoryIntegrationTest {
         //given
         String userId1 = "user1";
         String userId2 = "user2";
-        Category utilitiesCategory = new Category();
-        utilitiesCategory.setName("Utilities");
-        Category healthyCategory = new Category();
-        healthyCategory.setName("Health");
+
+
 
         Expense expense1 = new Expense(null, "Internet Bill", new Money(new BigDecimal("60.00"),Currency.getInstance("IRR")), utilitiesCategory, new User(userId1), LocalDate.now(), null);
         Expense expense2 = new Expense(null, "Electricity Bill", new Money(new BigDecimal("80.00"),Currency.getInstance("IRR")), utilitiesCategory, new User(userId1), LocalDate.now(), null);
