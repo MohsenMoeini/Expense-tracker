@@ -36,7 +36,7 @@ public class Expense {
 
 
     @NotNull(message = "Category is mandatory")
-    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
