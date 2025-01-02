@@ -20,7 +20,7 @@ public class KeycloakAuthoritiesConverter implements Converter<Jwt, Collection<G
             return new ArrayList<>();
         }
 
-        return ((List<GrantedAuthority>) realmAccess.get("roles")).stream()
+        return ((List<String>) realmAccess.get("roles")).stream()
                 .map(roleName -> "ROLE_" + roleName)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
