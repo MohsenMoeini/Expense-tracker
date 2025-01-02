@@ -9,10 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -30,6 +29,13 @@ public class ExpenseController {
         String username = jwtToken.getClaimAsString("preferred_username");
         ExpenseResponseDTO createdExpense = expenseService.createExpense(expenseRequestDTO, username);
         return ResponseEntity.ok(createdExpense);
+    }
+
+    @GetMapping("/get-expenses")
+    public ResponseEntity<List<ExpenseResponseDTO>> getExpenses(@AuthenticationPrincipal Jwt jwtToken){
+        String username = jwtToken.getClaimAsString("preferred_username");
+        List<ExpenseResponseDTO> expenses = expenseService.getExpensesByUsername(username);
+        return ResponseEntity.ok(expenses);
     }
 
 }

@@ -39,8 +39,10 @@ public class ExpenseService {
     }
 
 
-    public List<Expense> getExpensesByUsername(String username) {
-        return expenseRepository.findByUser_Username(username).orElse(Collections.emptyList());
+    public List<ExpenseResponseDTO> getExpensesByUsername(String username) {
+        List<Expense> expenses = expenseRepository.findByUser_Username(username).
+                orElse(Collections.emptyList());
+        return expenseMapper.toResponseDTOs(expenses);
     }
 
     public Expense updateExpense(Long expenseId, Expense updatedExpenseDetails) {
