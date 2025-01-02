@@ -6,6 +6,8 @@ import ir.snp.expense.service.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,9 +26,10 @@ public class ExpenseController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<ExpenseResponseDTO> createExpense(@Valid @RequestBody ExpenseRequestDTO expenseRequestDTO){
-        String username = "user1";
+    public ResponseEntity<ExpenseResponseDTO> createExpense(@Valid @RequestBody ExpenseRequestDTO expenseRequestDTO, @AuthenticationPrincipal Jwt jwtToken){
+        String username = jwtToken.getClaimAsString("preferred_username");
         ExpenseResponseDTO createdExpense = expenseService.createExpense(expenseRequestDTO, username);
         return ResponseEntity.ok(createdExpense);
     }
+
 }

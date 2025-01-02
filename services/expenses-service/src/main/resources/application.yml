@@ -5,6 +5,11 @@ server:
 spring:
   application:
     name: expenses-service
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          jwk-set-uri: http://localhost:8080/realms/master/protocol/openid-connect/certs
 
   datasource:
     url: jdbc:postgresql://localhost:5432/expenses_db
