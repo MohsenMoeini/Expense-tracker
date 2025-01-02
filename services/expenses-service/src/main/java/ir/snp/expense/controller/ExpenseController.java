@@ -45,4 +45,11 @@ public class ExpenseController {
         return ResponseEntity.ok(updatedExpense);
     }
 
+    @DeleteMapping("/delete/{expenseId}")
+    public void deleteExpense(@PathVariable Long expenseId, @AuthenticationPrincipal Jwt jwtToken){
+        String username = jwtToken.getClaimAsString("preferred_username");
+        expenseService.deleteExpense(expenseId, username);
+    }
+
+
 }

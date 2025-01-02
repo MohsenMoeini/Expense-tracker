@@ -187,7 +187,7 @@ public class ExpenseServiceIntegrationTest {
         Expense savedExpense = expenseRepository.save(expense);
 
         //when
-        expenseService.deleteExpense(savedExpense.getId());
+        expenseService.deleteExpense(savedExpense.getId(), user1.getUsername());
 
         //then
         Optional<Expense> deletedExpense = expenseRepository.findById(savedExpense.getId());
@@ -217,7 +217,7 @@ public class ExpenseServiceIntegrationTest {
         Long nonExistentId = 99L;
 
         //when and then
-        assertThatThrownBy(() -> expenseService.deleteExpense(nonExistentId))
+        assertThatThrownBy(() -> expenseService.deleteExpense(nonExistentId, "username"))
                 .isInstanceOf(ExpenseNotFoundException.class)
                 .hasMessage("Expense not found with id: "+ nonExistentId);
     }

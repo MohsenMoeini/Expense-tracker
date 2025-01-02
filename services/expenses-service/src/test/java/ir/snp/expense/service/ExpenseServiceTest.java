@@ -218,14 +218,21 @@ public class ExpenseServiceTest {
     void shouldDeleteExistingExpense(){
         //given
         Long expenseId = 1L;
-        when(expenseRepository.existsById(expenseId)).thenReturn(true);
+
+        Category category = new Category(2L, "Dining", null);
+        Money money = new Money(new BigDecimal("15.00"),Currency.getInstance("IRR"));
+        User user = new User("user1");
+
+        Expense expense = new Expense(null, "Dinner", money, category, user, LocalDate.now(), null);
+
+        when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
 
         //when
-        expenseService.deleteExpense(expenseId);
+        expenseService.deleteExpense(expenseId, "user1");
 
         //then
 
-        verify(expenseRepository, times(1)).existsById(expenseId);
+        verify(expenseRepository, times(1)).findById(expenseId);
         verify(expenseRepository, times(1)).deleteById(expenseId);
 
     }
@@ -235,14 +242,14 @@ public class ExpenseServiceTest {
         //given
         Long expenseId = 99L;
 
-        when(expenseRepository.existsById(expenseId)).thenReturn(false);
+        when(expenseRepository.findById(expenseId)).thenReturn(Optional.empty());
 
         //when / then
-        assertThatThrownBy(() -> expenseService.deleteExpense(expenseId))
+        assertThatThrownBy(() -> expenseService.deleteExpense(expenseId, "username"))
                 .isInstanceOf(ExpenseNotFoundException.class)
                 .hasMessage("Expense not found with id: " + expenseId);
 
-        verify(expenseRepository, times(1)).existsById(expenseId);
+        verify(expenseRepository, times(1)).findById(expenseId);
         verify(expenseRepository, never()).deleteById(expenseId);
 
 

@@ -63,11 +63,12 @@ public class ExpenseService {
         return expenseMapper.toResponseDTO(updatedExpense);
     }
 
-    public void deleteExpense(Long expenseId) {
-        if (!expenseRepository.existsById(expenseId)){
-            throw new ExpenseNotFoundException(expenseId);
+    public void deleteExpense(Long expenseId, String username) {
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(()-> new ExpenseNotFoundException(expenseId));
+        if (!expense.getUser().getUsername().equals(username)){
+            throw new UnauthorizedActionException("You do not have permissions to delete this expense");
         }
         expenseRepository.deleteById(expenseId);
-
     }
 }
