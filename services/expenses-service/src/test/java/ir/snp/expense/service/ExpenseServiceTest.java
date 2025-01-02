@@ -175,6 +175,8 @@ public class ExpenseServiceTest {
 
         when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(existingExpense));
         when(expenseRepository.save(any(Expense.class))).thenReturn(updatedExpense);
+        when(categoryRepository.findById(existingCategory.getId())).thenReturn(Optional.of(updatedCategory));
+
 
         //when
         ExpenseResponseDTO result = expenseService.updateExpense(expenseId, expenseMapper.toRequestDTO(updatedExpenseDetails), user.getUsername());
@@ -202,6 +204,7 @@ public class ExpenseServiceTest {
         Expense updatedExpenseDetails = new Expense(null, "Dinner", money, category, user, LocalDate.now(), null);
 
         when(expenseRepository.findById(expenseId)).thenReturn(Optional.empty());
+        when(categoryRepository.findById(any())).thenReturn(Optional.of(new Category()));
         //when then
         assertThatThrownBy(()-> expenseService.updateExpense(expenseId, expenseMapper.toRequestDTO(updatedExpenseDetails),user.getUsername()))
                 .isInstanceOf(ExpenseNotFoundException.class)

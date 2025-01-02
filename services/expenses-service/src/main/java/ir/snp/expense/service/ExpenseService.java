@@ -48,6 +48,7 @@ public class ExpenseService {
 
     public ExpenseResponseDTO updateExpense(Long expenseId, ExpenseRequestDTO updatedExpenseDetailsDTO,String username) {
         Expense updatedExpenseDetails = expenseMapper.toEntity(updatedExpenseDetailsDTO);
+        Category category = categoryRepository.findById(updatedExpenseDetailsDTO.getCategoryId()).orElseThrow(()->new RuntimeException("Category not found"));
         Expense updatedExpense = expenseRepository.findById(expenseId)
                 .map(existingExpense -> {
                     if (!existingExpense.getUser().getUsername().equals(username)){
@@ -56,8 +57,7 @@ public class ExpenseService {
                     existingExpense.setDescription(updatedExpenseDetails.getDescription());
                     existingExpense.setMoney(updatedExpenseDetails.getMoney());
                     existingExpense.setDate(updatedExpenseDetails.getDate());
-                    existingExpense.setUser(updatedExpenseDetails.getUser());
-                    existingExpense.setCategory(updatedExpenseDetails.getCategory());
+                    existingExpense.setCategory(category);
                     return expenseRepository.save(existingExpense);
                 }).orElseThrow(() -> new ExpenseNotFoundException(expenseId));
         return expenseMapper.toResponseDTO(updatedExpense);

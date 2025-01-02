@@ -38,7 +38,7 @@ public class ExpenseController {
         return ResponseEntity.ok(expenses);
     }
 
-    @PutMapping
+    @PutMapping("/update/{expenseId}")
     public ResponseEntity<ExpenseResponseDTO> updateExpense(@PathVariable Long expenseId, @RequestBody ExpenseRequestDTO updatedExpenseDetailsDTO, @AuthenticationPrincipal Jwt jwtToken){
         String username = jwtToken.getClaimAsString("preferred_username");
         ExpenseResponseDTO updatedExpense =expenseService.updateExpense(expenseId,updatedExpenseDetailsDTO, username);
