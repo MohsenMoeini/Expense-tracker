@@ -80,7 +80,7 @@ public class ExpenseServiceTest {
         expense.setDate(LocalDate.now());
         expense.setCategory(foodCategory);
         expense.setUser(user);
-        ExpenseRequestDTO expenseRequestDTO = expenseMapper.toDTO(expense);
+        ExpenseRequestDTO expenseRequestDTO = expenseMapper.toRequestDTO(expense);
 
         Expense savedExpense = new Expense(1L,"Coffee",
                 money,foodCategory, user, LocalDate.now(),
@@ -177,14 +177,14 @@ public class ExpenseServiceTest {
         when(expenseRepository.save(any(Expense.class))).thenReturn(updatedExpense);
 
         //when
-        Expense result = expenseService.updateExpense(expenseId, updatedExpenseDetails);
+        ExpenseResponseDTO result = expenseService.updateExpense(expenseId, expenseMapper.toRequestDTO(updatedExpenseDetails), user.getUsername());
 
         //then
         assertThat(result.getId()).isEqualTo(expenseId);
         assertThat(result.getDescription()).isEqualTo("Dinner");
         assertThat(result.getMoney().getAmount()).isEqualByComparingTo("15.00");
-        assertThat(result.getMoney().getCurrency()).isEqualTo(Currency.getInstance("USD"));
-        assertThat(result.getCategory().getName()).isEqualTo("Dining");
+        assertThat(result.getMoney().getCurrencyCode()).isEqualTo("USD");
+        assertThat(result.getCategoryName()).isEqualTo("Dining");
         assertThat(result.getVersion()).isEqualTo(1L);
 
         verify(expenseRepository, times(1)).findById(expenseId);
@@ -203,7 +203,7 @@ public class ExpenseServiceTest {
 
         when(expenseRepository.findById(expenseId)).thenReturn(Optional.empty());
         //when then
-        assertThatThrownBy(()-> expenseService.updateExpense(expenseId, updatedExpenseDetails))
+        assertThatThrownBy(()-> expenseService.updateExpense(expenseId, expenseMapper.toRequestDTO(updatedExpenseDetails),user.getUsername()))
                 .isInstanceOf(ExpenseNotFoundException.class)
                 .hasMessage("Expense not found with id: " + expenseId);
 

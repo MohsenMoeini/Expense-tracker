@@ -16,4 +16,5 @@ public class ExpenseResponseDTO {
     private MoneyDTO money;
     private String categoryName;
     private LocalDate date;
+    private Long version;
 }

@@ -105,7 +105,7 @@ public class ExpenseServiceIntegrationTest {
         expense.setCategory(entertainmentCategory);
         expense.setDate(LocalDate.now());
 
-        ExpenseRequestDTO expenseRequestDTO = expenseMapper.toDTO(expense);
+        ExpenseRequestDTO expenseRequestDTO = expenseMapper.toRequestDTO(expense);
 
         //when
         ExpenseResponseDTO createdExpense = expenseService.createExpense(expenseRequestDTO, "user1");
@@ -161,7 +161,7 @@ public class ExpenseServiceIntegrationTest {
         Expense updatedExpense = new Expense(null, "Dinner at restaurant", updatedgMoney, updatedCategory, new User(userId), LocalDate.now(), null);
 
         //when
-        Expense result = expenseService.updateExpense(savedExpense.getId(), updatedExpense);
+        ExpenseResponseDTO result = expenseService.updateExpense(savedExpense.getId(), expenseMapper.toRequestDTO(updatedExpense),user.getUsername());
 
         //then
         assertThat(result.getDescription()).isEqualTo("Dinner at restaurant");
@@ -205,7 +205,7 @@ public class ExpenseServiceIntegrationTest {
         Expense updatedExpense = new Expense(null, "NonExistent", money, transportCategory, user1, LocalDate.now(), null);
 
         //when and then
-        assertThatThrownBy(() -> expenseService.updateExpense(nonExistentId, updatedExpense))
+        assertThatThrownBy(() -> expenseService.updateExpense(nonExistentId, expenseMapper.toRequestDTO(updatedExpense),user1.getUsername()))
                 .isInstanceOf(ExpenseNotFoundException.class)
                 .hasMessage("Expense not found with id: " + nonExistentId);
     }

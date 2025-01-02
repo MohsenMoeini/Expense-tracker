@@ -26,7 +26,7 @@ public interface ExpenseMapper {
 
     @Mapping(source = "money.currency", target = "money.currencyCode", qualifiedByName = "currencyToString")
     @Mapping(source = "category.id", target = "categoryId")
-    ExpenseRequestDTO toDTO(Expense expense);
+    ExpenseRequestDTO toRequestDTO(Expense expense);
 
     @Mapping(source = "money.currency", target = "money.currencyCode", qualifiedByName = "currencyToString")
     @Mapping(source = "category.name", target = "categoryName")

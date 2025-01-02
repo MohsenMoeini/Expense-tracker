@@ -6,6 +6,7 @@ import ir.snp.expense.entity.Category;
 import ir.snp.expense.entity.Expense;
 import ir.snp.expense.entity.User;
 import ir.snp.expense.exception.ExpenseNotFoundException;
+import ir.snp.expense.exception.UnauthorizedActionException;
 import ir.snp.expense.mappers.ExpenseMapper;
 import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
@@ -45,9 +46,13 @@ public class ExpenseService {
         return expenseMapper.toResponseDTOs(expenses);
     }
 
-    public Expense updateExpense(Long expenseId, Expense updatedExpenseDetails) {
-        return expenseRepository.findById(expenseId)
+    public ExpenseResponseDTO updateExpense(Long expenseId, ExpenseRequestDTO updatedExpenseDetailsDTO,String username) {
+        Expense updatedExpenseDetails = expenseMapper.toEntity(updatedExpenseDetailsDTO);
+        Expense updatedExpense = expenseRepository.findById(expenseId)
                 .map(existingExpense -> {
+                    if (!existingExpense.getUser().getUsername().equals(username)){
+                        throw new UnauthorizedActionException("You do not have permissions to update this expense");
+                    }
                     existingExpense.setDescription(updatedExpenseDetails.getDescription());
                     existingExpense.setMoney(updatedExpenseDetails.getMoney());
                     existingExpense.setDate(updatedExpenseDetails.getDate());
@@ -55,6 +60,7 @@ public class ExpenseService {
                     existingExpense.setCategory(updatedExpenseDetails.getCategory());
                     return expenseRepository.save(existingExpense);
                 }).orElseThrow(() -> new ExpenseNotFoundException(expenseId));
+        return expenseMapper.toResponseDTO(updatedExpense);
     }
 
     public void deleteExpense(Long expenseId) {
