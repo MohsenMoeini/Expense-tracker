@@ -9,6 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,9 +20,15 @@ import java.util.Currency;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @DataJpaTest
 class ExpenseRepositoryIntegrationTest {
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private JwtDecoder jwtDecoder;
+
     @Autowired
     private ExpenseRepository expenseRepository;
     @Autowired
@@ -31,10 +40,14 @@ class ExpenseRepositoryIntegrationTest {
 
     @BeforeEach
     void setup(){
+       mockJwt();
+       initCategories();
+    }
+
+    private void initCategories() {
         foodCategory = new Category();
         healthyCategory = new Category();
         utilitiesCategory = new Category();
-
 
         foodCategory.setName("Food");
         healthyCategory.setName("Health");
@@ -43,6 +56,14 @@ class ExpenseRepositoryIntegrationTest {
         foodCategory = categoryRepository.save(foodCategory);
         healthyCategory = categoryRepository.save(healthyCategory);
         utilitiesCategory = categoryRepository.save(utilitiesCategory);
+    }
+
+    private void mockJwt(){
+        Jwt mockJwt = Jwt.withTokenValue("test-token")
+                .headers(stringObjectMap -> stringObjectMap.put("Alg","123"))
+                .claim("preferred-username", "test-username")
+                .build();
+        when(jwtDecoder.decode(any())).thenReturn(mockJwt);
     }
     @Test
     @DisplayName("Should save and retrieve an expense successfully")

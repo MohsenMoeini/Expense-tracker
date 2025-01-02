@@ -10,9 +10,12 @@ import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.mappers.ExpenseMapper;
 import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
@@ -35,6 +38,10 @@ public class ExpenseServiceTest {
 
     @MockitoBean
     @SuppressWarnings("unused")
+    private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    @SuppressWarnings("unused")
     private CategoryRepository categoryRepository;
 
     @Autowired
@@ -42,6 +49,19 @@ public class ExpenseServiceTest {
 
     @Autowired
     ExpenseService expenseService;
+
+
+    @BeforeEach
+    void setup(){
+        mockJwt();
+    }
+    private void mockJwt(){
+        Jwt mockJwt = Jwt.withTokenValue("test-token")
+                .headers(stringObjectMap -> stringObjectMap.put("Alg","123"))
+                .claim("preferred-username", "test-username")
+                .build();
+        when(jwtDecoder.decode(any())).thenReturn(mockJwt);
+    }
 
     @Test
     public void testCreateExpense_success(){
@@ -104,7 +124,7 @@ public class ExpenseServiceTest {
         when(expenseRepository.findByUser_Username(username)).thenReturn(Optional.of(mockExpenses));
 
         //when
-        List<Expense> expenses = expenseService.getExpensesByUsername(username);
+        List<Expense> expenses = expenseMapper.toEntities(expenseService.getExpensesByUsername(username));
 
         //then
         assertThat(expenses).hasSize(2);
@@ -126,7 +146,7 @@ public class ExpenseServiceTest {
         String username = "test_user";
         when(expenseRepository.findByUser_Username(username)).thenReturn(Optional.empty());
 
-        List<Expense> expenses = expenseService.getExpensesByUsername(username);
+        List<Expense> expenses = expenseMapper.toEntities(expenseService.getExpensesByUsername(username));
 
         assertThat(expenses).isEmpty();
 

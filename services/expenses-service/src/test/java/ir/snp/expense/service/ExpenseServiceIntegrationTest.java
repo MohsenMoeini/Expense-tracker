@@ -16,6 +16,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,10 +28,16 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
 public class ExpenseServiceIntegrationTest {
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private JwtDecoder jwtDecoder;
+
     @Autowired
     private ExpenseService expenseService;
 
@@ -49,6 +58,11 @@ public class ExpenseServiceIntegrationTest {
 
     @BeforeEach
     void setup(){
+        mockJwt();
+        initCategories();
+    }
+
+    private void initCategories() {
         entertainmentCategory = new Category();
         foodCategory = new Category();
         transportCategory = new Category();
@@ -66,6 +80,14 @@ public class ExpenseServiceIntegrationTest {
         transportCategory = categoryRepository.save(transportCategory);
         existingCategory = categoryRepository.save(existingCategory);
         updatedCategory = categoryRepository.save(updatedCategory);
+    }
+
+    private void mockJwt(){
+        Jwt mockJwt = Jwt.withTokenValue("test-token")
+                .headers(stringObjectMap -> stringObjectMap.put("Alg","123"))
+                .claim("preferred-username", "test-username")
+                .build();
+        when(jwtDecoder.decode(any())).thenReturn(mockJwt);
     }
 
     @Test
@@ -113,7 +135,7 @@ public class ExpenseServiceIntegrationTest {
         expenseRepository.saveAll(List.of(expense1, expense2));
 
         //when
-        List<Expense> expenses =expenseService.getExpensesByUsername(userId);
+        List<Expense> expenses = expenseMapper.toEntities(expenseService.getExpensesByUsername(userId));
 
         //then
         assertThat(expenses).hasSize(2)
