@@ -63,13 +63,11 @@ public class ExpenseService {
                     if (!existingExpense.getUser().getUsername().equals(username)){
                         throw new UnauthorizedActionException("You do not have permissions to update this expense");
                     }
-                    BigDecimal differenceAmount = updatedExpenseDetails.getMoney().getAmount().subtract(existingExpense.getMoney().getAmount());
-
+                    updateEngagedThresholds(existingExpense.getCategory(), category, existingExpense.getMoney().getAmount(),updatedExpenseDetails.getMoney().getAmount(), username);
                     existingExpense.setDescription(updatedExpenseDetails.getDescription());
                     existingExpense.setMoney(updatedExpenseDetails.getMoney());
                     existingExpense.setDate(updatedExpenseDetails.getDate());
                     existingExpense.setCategory(category);
-                    addToThresholdIfExist(category, username, differenceAmount);
                     return expenseRepository.save(existingExpense);
                 }).orElseThrow(() -> new ExpenseNotFoundException(expenseId));
         return expenseMapper.toResponseDTO(updatedExpense);
@@ -86,15 +84,43 @@ public class ExpenseService {
 
     public boolean addToThresholdIfExist(Category category, String username, BigDecimal amount) {
         Optional<ExpenseThreshold> threshold = expenseThresholdRepository.
-                findByUserAndCategory(new User(username), category);
+                findByUser_UsernameAndCategory(username, category);
 
         return threshold.map(expenseThreshold -> {
-            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpenses();
-            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpenses().getAmount().add(amount));
-            expenseThreshold.setTotalMonthlyExpenses(totalMonthlyExpenses);
+            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpensesOnCategory();
+            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpensesOnCategory().getAmount().add(amount));
+            expenseThreshold.setTotalMonthlyExpensesOnCategory(totalMonthlyExpenses);
             expenseThresholdRepository.save(expenseThreshold);
             return true;
         }).orElse(false);
+    }
+
+    public boolean updateEngagedThresholds(Category existingCategory,Category updatingCategory, BigDecimal existingAmount, BigDecimal updatingAmount, String username) {
+
+        Optional<ExpenseThreshold> existingCategoryThreshold = expenseThresholdRepository.
+                findByUser_UsernameAndCategory(username, existingCategory);
+
+        Optional<ExpenseThreshold> updatingCategoryThreshold = expenseThresholdRepository.
+                findByUser_UsernameAndCategory(username, updatingCategory);
+
+        boolean existing = existingCategoryThreshold.map(expenseThreshold -> {
+            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpensesOnCategory();
+            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpensesOnCategory().getAmount().add(existingAmount));
+            expenseThreshold.setTotalMonthlyExpensesOnCategory(totalMonthlyExpenses);
+            expenseThresholdRepository.save(expenseThreshold);
+            return true;
+        }).orElse(false);
+
+
+        boolean updating = updatingCategoryThreshold.map(expenseThreshold -> {
+            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpensesOnCategory();
+            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpensesOnCategory().getAmount().add(updatingAmount));
+            expenseThreshold.setTotalMonthlyExpensesOnCategory(totalMonthlyExpenses);
+            expenseThresholdRepository.save(expenseThreshold);
+            return true;
+        }).orElse(false);
+
+        return existing && updating;
     }
 
 }

@@ -21,7 +21,20 @@ public class ExpenseThreshold {
     @ManyToOne
     private Category category;
 
-    private Money monthlyThreshold;
-    private Money totalMonthlyExpenses;
+    @Embedded
+    @Valid
+    @AttributeOverrides({
+            @AttributeOverride(name = "amount", column = @Column(name = "monthly_threshold_amount")),
+            @AttributeOverride(name = "currency", column = @Column(name = "monthly_threshold_currency", length = 3))
+    })
+    private Money monthlyCategoryThreshold;
+
+    @Embedded
+    @Valid
+    @AttributeOverrides({
+            @AttributeOverride(name = "amount", column = @Column(name = "total_monthly_expenses_amount")),
+            @AttributeOverride(name = "currency", column = @Column(name = "total_monthly_expenses_currency", length = 3))
+    })
+    private Money totalMonthlyExpensesOnCategory;
 
 }

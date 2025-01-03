@@ -1,11 +1,9 @@
-package ir.snp.threashold.controller;
+package ir.snp.threashold.dto;
 
 import ir.snp.expense.dto.MoneyDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
