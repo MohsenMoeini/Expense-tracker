@@ -1,5 +1,6 @@
 package ir.snp.threashold.service;
 
+import ir.snp.expense.entity.Money;
 import ir.snp.threashold.entity.ExpenseThreshold;
 import ir.snp.threashold.repository.ExpenseThresholdRepository;
 import jakarta.transaction.Transactional;
@@ -17,12 +18,15 @@ public class ExpenseThresholdService {
         this.expenseThresholdRepository = expenseThresholdRepository;
     }
 
+
     @Scheduled(cron = "0 0 1 * * ?") // reset thresholds on starting day of each month
     @Transactional
     public void resetMonthlyExpenses(){
         List<ExpenseThreshold> thresholds = expenseThresholdRepository.findAll();
         for (ExpenseThreshold threshold : thresholds) {
-            threshold.setTotalMonthlyExpenses(BigDecimal.valueOf(0));
+            Money totalMonthlyExpenses = threshold.getTotalMonthlyExpenses();
+            totalMonthlyExpenses.setAmount(BigDecimal.valueOf(0));
+            threshold.setTotalMonthlyExpenses(totalMonthlyExpenses);
             expenseThresholdRepository.save(threshold);
         }
     }

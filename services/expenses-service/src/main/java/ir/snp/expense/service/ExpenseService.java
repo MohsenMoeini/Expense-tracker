@@ -4,6 +4,7 @@ import ir.snp.expense.dto.ExpenseRequestDTO;
 import ir.snp.expense.dto.ExpenseResponseDTO;
 import ir.snp.expense.entity.Category;
 import ir.snp.expense.entity.Expense;
+import ir.snp.expense.entity.Money;
 import ir.snp.expense.entity.User;
 import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.exception.UnauthorizedActionException;
@@ -88,7 +89,9 @@ public class ExpenseService {
                 findByUserAndCategory(new User(username), category);
 
         return threshold.map(expenseThreshold -> {
-            expenseThreshold.setTotalMonthlyExpenses(expenseThreshold.getTotalMonthlyExpenses().add(amount));
+            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpenses();
+            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpenses().getAmount().add(amount));
+            expenseThreshold.setTotalMonthlyExpenses(totalMonthlyExpenses);
             expenseThresholdRepository.save(expenseThreshold);
             return true;
         }).orElse(false);

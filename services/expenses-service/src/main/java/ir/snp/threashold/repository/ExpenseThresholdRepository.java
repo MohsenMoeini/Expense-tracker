@@ -9,4 +9,5 @@ import java.util.Optional;
 
 public interface ExpenseThresholdRepository extends JpaRepository<ExpenseThreshold, Long> {
     Optional<ExpenseThreshold> findByUserAndCategory(User user, Category category);
+    Optional<ExpenseThreshold> findByUser(User user, Category category);
 }

@@ -8,7 +8,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.Currency;
 @Embeddable
-@Getter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Money {
