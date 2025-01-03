@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Entity
 @Data
 public class ExpenseThreshold {
@@ -20,8 +22,8 @@ public class ExpenseThreshold {
     @ManyToOne
     private Category category;
 
-    private double monthlyThreshold;
-    private double totalMonthlyExpenses;
+    private BigDecimal monthlyThreshold;
+    private BigDecimal totalMonthlyExpenses;
 
 
 }

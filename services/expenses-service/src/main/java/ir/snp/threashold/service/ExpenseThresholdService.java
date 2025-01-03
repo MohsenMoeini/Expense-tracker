@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -21,7 +22,7 @@ public class ExpenseThresholdService {
     public void resetMonthlyExpenses(){
         List<ExpenseThreshold> thresholds = expenseThresholdRepository.findAll();
         for (ExpenseThreshold threshold : thresholds) {
-            threshold.setTotalMonthlyExpenses(0);
+            threshold.setTotalMonthlyExpenses(BigDecimal.valueOf(0));
             expenseThresholdRepository.save(threshold);
         }
     }
