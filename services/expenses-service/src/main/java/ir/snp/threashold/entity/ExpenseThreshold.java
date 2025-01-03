@@ -37,4 +37,7 @@ public class ExpenseThreshold {
     })
     private Money totalMonthlyExpensesOnCategory;
 
+    @Version
+    private Long version;
+
 }

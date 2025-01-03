@@ -10,6 +10,7 @@ import ir.snp.expense.exception.ExpenseNotFoundException;
 import ir.snp.expense.mappers.ExpenseMapper;
 import ir.snp.expense.repository.CategoryRepository;
 import ir.snp.expense.repository.ExpenseRepository;
+import ir.snp.threashold.repository.ExpenseThresholdRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,10 @@ public class ExpenseServiceTest {
     @MockitoBean
     @SuppressWarnings("unused")
     private ExpenseRepository expenseRepository;
+
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private ExpenseThresholdRepository expenseThresholdRepository;
 
     @MockitoBean
     @SuppressWarnings("unused")
@@ -88,7 +93,7 @@ public class ExpenseServiceTest {
 
         when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
         when(categoryRepository.findById(any())).thenReturn(Optional.of(foodCategory));
-
+        when(expenseThresholdRepository.findByUser_UsernameAndCategory(any(),any())).thenReturn(Optional.empty());
 
         //when
         ExpenseResponseDTO result = expenseService.createExpense(expenseRequestDTO, user.getUsername());
