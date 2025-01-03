@@ -12,16 +12,8 @@ import java.util.Currency;
 
 @Mapper(componentModel = "spring")
 public interface ThresholdMapper {
-    @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(source = "monthlyThreshold.currency", target = "monthlyThreshold.currencyCode", qualifiedByName = "currencyToString")
-    @Mapping(source = "totalMonthlyExpenses.currency", target = "totalMonthlyExpenses.currencyCode", qualifiedByName = "currencyToString")
-    ThresholdResponseDTO toResponseDTO(ExpenseThreshold expenseThreshold);
     @Mapping(source = "currency.currencyCode", target = "currencyCode", qualifiedByName = "currencyToString")
     MoneyDTO toMoneyDTO(Money money);
-    @Named("stringToCurrency")
-    static Currency stringToCurrency(String currencyCode){
-        return Currency.getInstance(currencyCode);
-    }
 
     @Named("currencyToString")
     static String currencyToString(Currency currency){

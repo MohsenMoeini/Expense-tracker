@@ -14,7 +14,7 @@ import java.util.Currency;
 public class Money {
 
     @NotNull
-    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be positive")
+    @DecimalMin(value = "0.0", message = "Amount must be positive")
     private BigDecimal amount;
     @NotNull(message = "Currency is mandatory")
     private Currency currency;

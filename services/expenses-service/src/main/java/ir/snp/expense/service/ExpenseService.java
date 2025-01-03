@@ -40,7 +40,7 @@ public class ExpenseService {
     @Transactional
     public ExpenseResponseDTO createExpense(ExpenseRequestDTO expenseRequestDTO, String username) {
         Expense expense = expenseMapper.toEntity(expenseRequestDTO);
-        Category category = categoryRepository.findById(expenseRequestDTO.getCategoryId()).orElseThrow(()->new RuntimeException("Category not found"));
+        Category category = categoryRepository.findById(expenseRequestDTO.getCategoryId()).orElseThrow(() -> new RuntimeException("Category not found"));
         addToThresholdIfExist(category, username, expense.getMoney().getAmount());
         expense.setCategory(category);
         expense.setUser(new User(username));
@@ -55,15 +55,16 @@ public class ExpenseService {
         return expenseMapper.toResponseDTOs(expenses);
     }
 
-    public ExpenseResponseDTO updateExpense(Long expenseId, ExpenseRequestDTO updatedExpenseDetailsDTO,String username) {
+    @Transactional
+    public ExpenseResponseDTO updateExpense(Long expenseId, ExpenseRequestDTO updatedExpenseDetailsDTO, String username) {
         Expense updatedExpenseDetails = expenseMapper.toEntity(updatedExpenseDetailsDTO);
-        Category category = categoryRepository.findById(updatedExpenseDetailsDTO.getCategoryId()).orElseThrow(()->new RuntimeException("Category not found"));
+        Category category = categoryRepository.findById(updatedExpenseDetailsDTO.getCategoryId()).orElseThrow(() -> new RuntimeException("Category not found"));
         Expense updatedExpense = expenseRepository.findById(expenseId)
                 .map(existingExpense -> {
-                    if (!existingExpense.getUser().getUsername().equals(username)){
+                    if (!existingExpense.getUser().getUsername().equals(username)) {
                         throw new UnauthorizedActionException("You do not have permissions to update this expense");
                     }
-                    updateEngagedThresholds(existingExpense.getCategory(), category, existingExpense.getMoney().getAmount(),updatedExpenseDetails.getMoney().getAmount(), username);
+                    updateEngagedThresholds(existingExpense.getCategory(), category, existingExpense.getMoney().getAmount(), updatedExpenseDetails.getMoney().getAmount(), username);
                     existingExpense.setDescription(updatedExpenseDetails.getDescription());
                     existingExpense.setMoney(updatedExpenseDetails.getMoney());
                     existingExpense.setDate(updatedExpenseDetails.getDate());
@@ -73,10 +74,11 @@ public class ExpenseService {
         return expenseMapper.toResponseDTO(updatedExpense);
     }
 
+    @Transactional
     public void deleteExpense(Long expenseId, String username) {
         Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(()-> new ExpenseNotFoundException(expenseId));
-        if (!expense.getUser().getUsername().equals(username)){
+                .orElseThrow(() -> new ExpenseNotFoundException(expenseId));
+        if (!expense.getUser().getUsername().equals(username)) {
             throw new UnauthorizedActionException("You do not have permissions to delete this expense");
         }
         expenseRepository.deleteById(expenseId);
@@ -95,32 +97,27 @@ public class ExpenseService {
         }).orElse(false);
     }
 
-    public boolean updateEngagedThresholds(Category existingCategory,Category updatingCategory, BigDecimal existingAmount, BigDecimal updatingAmount, String username) {
+    public boolean updateEngagedThresholds(Category existingCategory, Category updatingCategory, BigDecimal existingAmount, BigDecimal updatingAmount, String username) {
+        if (existingCategory.getId().equals(updatingCategory.getId())) {
+            BigDecimal difference = updatingAmount.subtract(existingAmount);
+            return updateThreshold(existingCategory, username, difference);
+        }
 
-        Optional<ExpenseThreshold> existingCategoryThreshold = expenseThresholdRepository.
-                findByUser_UsernameAndCategory(username, existingCategory);
+        boolean subtracted = updateThreshold(existingCategory, username, existingAmount.negate());
+        boolean added = updateThreshold(updatingCategory, username, updatingAmount);
 
-        Optional<ExpenseThreshold> updatingCategoryThreshold = expenseThresholdRepository.
-                findByUser_UsernameAndCategory(username, updatingCategory);
+        return subtracted && added;
+    }
 
-        boolean existing = existingCategoryThreshold.map(expenseThreshold -> {
-            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpensesOnCategory();
-            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpensesOnCategory().getAmount().add(existingAmount));
-            expenseThreshold.setTotalMonthlyExpensesOnCategory(totalMonthlyExpenses);
-            expenseThresholdRepository.save(expenseThreshold);
-            return true;
-        }).orElse(false);
-
-
-        boolean updating = updatingCategoryThreshold.map(expenseThreshold -> {
-            Money totalMonthlyExpenses = expenseThreshold.getTotalMonthlyExpensesOnCategory();
-            totalMonthlyExpenses.setAmount(expenseThreshold.getTotalMonthlyExpensesOnCategory().getAmount().add(updatingAmount));
-            expenseThreshold.setTotalMonthlyExpensesOnCategory(totalMonthlyExpenses);
-            expenseThresholdRepository.save(expenseThreshold);
-            return true;
-        }).orElse(false);
-
-        return existing && updating;
+    private boolean updateThreshold(Category category, String username, BigDecimal amountToAdd) {
+        return expenseThresholdRepository.findByUser_UsernameAndCategory(username, category)
+                .map(threshold -> {
+                    Money totalMoneyExpenses = threshold.getTotalMonthlyExpensesOnCategory();
+                    totalMoneyExpenses.setAmount(totalMoneyExpenses.getAmount().add(amountToAdd));
+                    threshold.setTotalMonthlyExpensesOnCategory(totalMoneyExpenses);
+                    expenseThresholdRepository.save(threshold);
+                    return true;
+                }).orElse(false);
     }
 
 }
