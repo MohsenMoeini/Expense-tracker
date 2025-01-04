@@ -20,16 +20,10 @@ ensure the keycloak is running
 
 then you need to create a client in keycloak like this:
 
-![](images/clients1.png)
-![](images/clients2.png)
-![](images/clients3.png)
-![](images/clients4.png)
-
-
-
-
-
-
+![alt text](https://github.com/MohsenMoeini/Expense-tracker/blob/develop/images/clients1.png?raw=true)
+![alt text](https://github.com/MohsenMoeini/Expense-tracker/blob/develop/images/clients2.png?raw=true)
+![alt text](https://github.com/MohsenMoeini/Expense-tracker/blob/develop/images/clients3.png?raw=true)
+![alt text](https://github.com/MohsenMoeini/Expense-tracker/blob/develop/images/clients4.png?raw=true)
 
 
 
