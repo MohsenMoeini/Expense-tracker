@@ -31,3 +31,25 @@ spring:
 logging:
   level:
     org.springframework.security: TRACE
+    org.springdoc: DEBUG
+    org.springframework.web: DEBUG
+
+# Swagger UI configuration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    oauth:
+      client-id: gateway-resource-server
+      client-secret: n9iXHqU8If9nFSQK0UKWMFZTz2Hp8et5
+      use-pkce-with-authorization-code-grant: false
+      use-basic-authentication-with-access-code-grant: false
+      scope-separator: " "
+      scopes:
+        - openid
+        - profile
+        - email
+      token-url: http://localhost:8080/realms/master/protocol/openid-connect/token
+  api-docs:
+    path: /v3/api-docs
+  default-produces-media-type: application/json
+  default-security-scheme-name: keycloak_oauth
