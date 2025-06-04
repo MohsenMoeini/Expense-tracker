@@ -10,7 +10,7 @@ import java.util.Currency;
 @Embeddable
 @Data
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Money {
 
     @NotNull

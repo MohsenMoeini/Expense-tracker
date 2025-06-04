@@ -23,7 +23,7 @@ spring:
         - id: expenses-service
           uri: http://localhost:8082
           predicates:
-            - Path=/api/expenses/**, /api/thresholds/**
+            - Path=/api/expenses/**, /api/thresholds/**, /api/categories/**
 
 logging:
   level:

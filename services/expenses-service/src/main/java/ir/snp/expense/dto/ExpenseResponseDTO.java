@@ -14,7 +14,7 @@ public class ExpenseResponseDTO {
     private String description;
     private String username;
     private MoneyDTO money;
-    private String categoryName;
+    private CategoryDTO category;
     private LocalDate date;
     private Long version;
 }

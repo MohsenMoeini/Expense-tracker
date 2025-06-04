@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 import java.util.Set;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "categories", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"name", "username"})
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,8 +21,11 @@ public class Category {
     private Long id;
 
     @NotBlank(message = "category name is mandatory")
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String name;
+    
+    @Embedded
+    private User user;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Expense> expenses;

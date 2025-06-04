@@ -1,5 +1,6 @@
 package ir.snp.expense.controller;
 
+import ir.snp.expense.dto.CategoryExpenseSummaryDTO;
 import ir.snp.expense.dto.ExpenseRequestDTO;
 import ir.snp.expense.dto.ExpenseResponseDTO;
 import ir.snp.expense.service.ExpenseService;
@@ -31,11 +32,25 @@ public class ExpenseController {
         return ResponseEntity.ok(createdExpense);
     }
 
+    @GetMapping("/get-expense/{expenseId}")
+    public ResponseEntity<ExpenseResponseDTO> getExpenseById(@PathVariable Long expenseId, @AuthenticationPrincipal Jwt jwtToken) {
+        String username = jwtToken.getClaimAsString("preferred_username");
+        ExpenseResponseDTO expense = expenseService.getExpenseById(expenseId, username);
+        return ResponseEntity.ok(expense);
+    }
+
     @GetMapping("/get-expenses")
     public ResponseEntity<List<ExpenseResponseDTO>> getExpenses(@AuthenticationPrincipal Jwt jwtToken){
         String username = jwtToken.getClaimAsString("preferred_username");
         List<ExpenseResponseDTO> expenses = expenseService.getExpensesByUsername(username);
         return ResponseEntity.ok(expenses);
+    }
+    
+    @GetMapping("/current-month-by-category")
+    public ResponseEntity<List<CategoryExpenseSummaryDTO>> getCurrentMonthExpensesByCategory(@AuthenticationPrincipal Jwt jwtToken) {
+        String username = jwtToken.getClaimAsString("preferred_username");
+        List<CategoryExpenseSummaryDTO> categorySummaries = expenseService.getCurrentMonthExpensesByCategory(username);
+        return ResponseEntity.ok(categorySummaries);
     }
 
     @PutMapping("/update/{expenseId}")
@@ -50,6 +65,4 @@ public class ExpenseController {
         String username = jwtToken.getClaimAsString("preferred_username");
         expenseService.deleteExpense(expenseId, username);
     }
-
-
 }

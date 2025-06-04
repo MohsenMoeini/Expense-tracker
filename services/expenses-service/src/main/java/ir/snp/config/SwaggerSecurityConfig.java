@@ -22,7 +22,7 @@ public class SwaggerSecurityConfig {
     public GroupedOpenApi expensesApi() {
         return GroupedOpenApi.builder()
                 .group("expenses-api")
-                .pathsToMatch("/api/expenses/**", "/api/thresholds/**")
+                .pathsToMatch("/api/expenses/**", "/api/thresholds/**", "/api/categories/**")
                 .build();
     }
 }
