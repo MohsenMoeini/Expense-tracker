@@ -30,6 +30,8 @@ public class ExpenseThresholdService {
                 .map(
                         threshold -> {
                             ThresholdResponseDTO dto = new ThresholdResponseDTO();
+                            dto.setId(threshold.getId());
+                            dto.setCategoryId(threshold.getCategory().getId());
                             dto.setCategoryName(threshold.getCategory().getName());
                             dto.setMonthlyThreshold(thresholdMapper.toMoneyDTO(threshold.getMonthlyCategoryThreshold()));
                             dto.setTotalMonthlyExpenses(thresholdMapper.toMoneyDTO(threshold.getTotalMonthlyExpensesOnCategory()));

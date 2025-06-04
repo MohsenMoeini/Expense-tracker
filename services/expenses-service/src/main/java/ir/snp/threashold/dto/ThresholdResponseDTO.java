@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ThresholdResponseDTO {
+    private Long id;
+    private Long categoryId;
     private String categoryName;
     private MoneyDTO monthlyThreshold;
     private MoneyDTO totalMonthlyExpenses;

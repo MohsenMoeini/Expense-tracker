@@ -9,7 +9,6 @@ import ir.snp.expense.repository.ExpenseRepository;
 import ir.snp.threashold.entity.ExpenseThreshold;
 import ir.snp.threashold.repository.ExpenseThresholdRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
