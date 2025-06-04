@@ -10,7 +10,8 @@ services:
       POSTGRES_DB: expenses_db
     ports:
       - "5432:5432"
-
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
 
   keycloak:
     image: keycloak/keycloak:25.0.0
@@ -24,39 +25,12 @@ services:
       KC_DB: postgres
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres:5432
-      KC_DB_URL: jdbc:postgresql://postgres:5432/expenses_db
-      DB_DATABASE: expenses_db
+      KC_DB_URL: jdbc:postgresql://postgres:5432/kc_db
+      DB_DATABASE: kc_db
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
       KC_HTTP_ENABLED: true
       KC_HOSTNAME_STRICT: false
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin123
-
-  gateway:
-    image: mohsenmoeini/api-gateway:0.1
-    ports:
-      - "8090:8090"
-    restart: on-failure
-    depends_on:
-      - keycloak
-    environment:
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/master/protocol/openid-connect/certs
-      SPRING_CLOUD_GATEWAY_ROUTES[0]_ID: expenses
-      SPRING_CLOUD_GATEWAY_ROUTES[0]_URI: http://expenses:8082
-      SPRING_CLOUD_GATEWAY_ROUTES[0]_PREDICATES[0]: Path=/api/expenses/**
-      SPRING_CLOUD_GATEWAY_ROUTES[1]_ID: threshold
-      SPRING_CLOUD_GATEWAY_ROUTES[1]_URI: http://expenses:8082
-      SPRING_CLOUD_GATEWAY_ROUTES[1]_PREDICATES[0]: Path=/api/thresholds/**
-
-  expenses:
-    image: mohsenmoeini/expense-tracker:0.1
-    depends_on:
-      - keycloak
-    ports:
-      - "8082:8082"
-    restart: on-failure
-    environment:
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/master/protocol/openid-connect/certs
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/expenses_db
 
